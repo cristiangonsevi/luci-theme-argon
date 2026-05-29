@@ -73,6 +73,9 @@ deploy_all() {
     echo "  ◌ Copying ACL rules..."
     put root/usr/share/rpcd/acl.d/luci-theme-argon.json /usr/share/rpcd/acl.d/luci-theme-argon.json
 
+    echo "  ◌ Activating theme in LuCI..."
+    ssh $SSH_CTL root@"$ROUTER" "uci set luci.themes.Argon=/luci-static/argon 2>/dev/null; uci set luci.main.mediaurlbase=/luci-static/argon 2>/dev/null; uci commit luci 2>/dev/null"
+
     echo "  ◌ Restarting services..."
     ssh $SSH_CTL root@"$ROUTER" "/etc/init.d/rpcd restart; /etc/init.d/uhttpd restart" 2>/dev/null
 
