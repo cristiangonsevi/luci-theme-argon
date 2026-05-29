@@ -34,7 +34,7 @@
   --teal: #11cdef;
   --cyan: #2bffc6;
   --gray: #8898aa;
-  --gray-dark: #32325d;
+  --gray-dark: #5f6368;
   --light: #ced4da;
   --lighter: #e9ecef;
   --success: #2dce89;
@@ -46,7 +46,7 @@
   --default: #172b4d;
   --white: #fff;
   --darker: black;
-  --background-color: #f4f5f7;
+  --background-color: #0a0a0a;
   --login-form-bg-color: rgba(244, 245, 247, 0.8);
   --blur-radius: 10px;
   --blur-opacity: 0.5;
@@ -135,7 +135,7 @@ h2 {
   font-weight: bold;
   color: var(--gray-dark);
   border-radius: 0.25rem;
-  background: var(--white);
+  background: var(--darker);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.03);
 }
 h3 {
@@ -146,7 +146,7 @@ h3 {
   line-height: 1;
   color: var(--gray-dark);
   border-radius: 0.25rem;
-  background: var(--white);
+  background: var(--darker);
   display: block;
   width: 100%;
 }
@@ -687,7 +687,7 @@ select[multiple="multiple"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #000;
+  background-color: var(--darker);
   overflow: hidden;
 }
 .login-page .login-bg-video video {
@@ -1488,7 +1488,7 @@ footer > a {
   padding: 0;
   border: 0;
   border-radius: 0.25rem;
-  background-color: #fff;
+  background-color: var(--darker);
   box-shadow: 0 0 1rem 0 rgba(136, 152, 170, 0.15);
 }
 .cbi-section:last-child,
@@ -1635,7 +1635,7 @@ body:not([data-page="admin-dashboard"]) #cbi-wireless > #wifi_assoclist_table > 
 .tr.table-titles > .th,
 .tr.cbi-section-table-titles > .th {
   border-top: 0 !important;
-  background-color: #f6f9fc;
+  background-color: #000;
   padding: 1.1em 1.25rem;
   line-height: 1.3rem;
 }
@@ -1703,7 +1703,7 @@ body:not([data-page="admin-dashboard"]) #cbi-wireless > #wifi_assoclist_table > 
 }
 div > table > tbody > tr:nth-of-type(2n),
 div > .table > .tr:nth-of-type(2n) {
-  background-color: #f9f9f9;
+  background-color: #0a0a0a;
 }
 /* fix multiple table */
 table table,
@@ -2193,7 +2193,7 @@ td > table > tbody > tr > td,
   background-color: #f9f9f9;
 }
 .cbi-rowstyle-2 {
-  background-color: #eee;
+  background-color: #000;
 }
 .cbi-rowstyle-2 .cbi-button-up,
 .cbi-rowstyle-2 .cbi-button-down,
@@ -2797,7 +2797,8 @@ td > .ifacebadge,
   flex: 1 1 auto;
   min-width: 220px;
   padding: 0.5em;
-  background-color: #fff;
+  background-color: var(--darker);
+  border: 1px solid #fff;
 }
 .network-status-table .ifacebox-body .ifacebadge > span {
   white-space: nowrap;
@@ -2968,7 +2969,8 @@ td > .ifacebadge,
   flex-direction: column;
   border-radius: 4px;
   min-width: 100px;
-  background-color: #f9f9f9;
+  background-color: var(--darker);
+  border: 1px solid #d4d4d4;
 }
 .ifacebox-head {
   padding: 0.25em;
