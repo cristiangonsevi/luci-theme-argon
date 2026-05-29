@@ -1918,7 +1918,7 @@ td > table > tbody > tr > td,
 }
 .tabs {
   padding: 0 1rem;
-  background-color: #FFFFFF;
+  background-color: #000;
   border-radius: 0.25rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.03);
   white-space: nowrap;
@@ -1941,7 +1941,7 @@ td > table > tbody > tr > td,
   border-bottom: 0.18751rem solid var(--primary);
   color: #5e72e4;
   color: var(--primary);
-  background-color: #e4e9ee;
+  background-color: #0a0a0a;
   margin-bottom: 0;
   border-radius: 0;
 }
@@ -2829,10 +2829,10 @@ td > .ifacebadge,
   min-height: 15rem;
   padding: 1rem;
   resize: none;
-  color: #242424;
+  color: #8898aa;
   border: 0;
   border-radius: 0.25rem;
-  background-color: #ffffff;
+  background-color: #000;
 }
 #syslog:focus {
   outline: 0;
