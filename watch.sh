@@ -1,5 +1,5 @@
 #!/bin/sh
-# watch.sh — Watch source files and auto-deploy to router on change
+# watch.sh — Watch source files and auto-deploy to OpenWrt router on change
 #
 # Usage:
 #   ./watch.sh <router-ip>
@@ -10,7 +10,7 @@
 # First time? Set up SSH keys so it doesn't ask for password every time:
 #   ssh-copy-id root@192.168.1.1
 #
-# Requires: ssh, scp
+# Requires: ssh
 # For real-time file watching: inotifywait (apt install inotify-tools)
 # Falls back to polling every 2s if inotifywait is not available.
 
@@ -26,13 +26,24 @@ fi
 # SSH multiplexing — single connection reused for all subsequent calls
 SSH_SOCKET="/tmp/luci-argon-watch-$ROUTER.sock"
 SSH_CTL="-o ControlPath=$SSH_SOCKET -o ControlMaster=auto -o ControlPersist=600"
-SCP_CTL="-o ControlPath=$SSH_SOCKET -o ControlMaster=auto"
 
 cleanup() {
     ssh $SSH_CTL -O exit root@"$ROUTER" 2>/dev/null || true
     rm -f /tmp/luci-argon-watch
 }
 trap cleanup EXIT
+
+# Uses ssh+cat instead of scp (OpenWrt Dropbear lacks sftp-server)
+put() {
+    local src="$1" dst="$2"
+    ssh $SSH_CTL root@"$ROUTER" "cat > '$dst'" < "$src"
+}
+
+put_recursive() {
+    local src_dir="$1" dst_dir="$2"
+    tar c -C "$(dirname "$src_dir")" "$(basename "$src_dir")" 2>/dev/null |
+    ssh $SSH_CTL root@"$ROUTER" "mkdir -p '$dst_dir' && tar xf - -C '$dst_dir'"
+}
 
 # ── helpers ─────────────────────────────────────────────────────────
 
@@ -48,23 +59,19 @@ deploy_all() {
     fi
 
     echo "  ◌ Copying static assets..."
-    scp $SCP_CTL -rq htdocs/luci-static/argon root@"$ROUTER":/www/luci-static/
-    scp $SCP_CTL htdocs/luci-static/resources/menu-argon.js \
-        root@"$ROUTER":/www/luci-static/resources/menu-argon.js
+    put_recursive htdocs/luci-static/argon /www/luci-static/argon
+    put htdocs/luci-static/resources/menu-argon.js /www/luci-static/resources/menu-argon.js
 
     echo "  ◌ Copying ucode templates..."
     ssh $SSH_CTL root@"$ROUTER" "mkdir -p /usr/share/ucode/luci/template/themes/argon" 2>/dev/null
-    scp $SCP_CTL -rq ucode/template/themes/argon/*.ut \
-        root@"$ROUTER":/usr/share/ucode/luci/template/themes/argon/
+    put_recursive ucode/template/themes/argon /usr/share/ucode/luci/template/themes/argon
 
     echo "  ◌ Copying RPCD plugin..."
-    scp $SCP_CTL root/usr/libexec/rpcd/luci.argon_wallpaper \
-        root@"$ROUTER":/usr/libexec/rpcd/luci.argon_wallpaper
+    put root/usr/libexec/rpcd/luci.argon_wallpaper /usr/libexec/rpcd/luci.argon_wallpaper
     ssh $SSH_CTL root@"$ROUTER" "chmod +x /usr/libexec/rpcd/luci.argon_wallpaper" 2>/dev/null
 
     echo "  ◌ Copying ACL rules..."
-    scp $SCP_CTL root/usr/share/rpcd/acl.d/luci-theme-argon.json \
-        root@"$ROUTER":/usr/share/rpcd/acl.d/luci-theme-argon.json
+    put root/usr/share/rpcd/acl.d/luci-theme-argon.json /usr/share/rpcd/acl.d/luci-theme-argon.json
 
     echo "  ◌ Restarting services..."
     ssh $SSH_CTL root@"$ROUTER" "/etc/init.d/rpcd restart; /etc/init.d/uhttpd restart" 2>/dev/null
@@ -83,16 +90,16 @@ deploy_incremental() {
                 case "$file" in
                     less/dark.less)
                         lessc --clean-css less/dark.less htdocs/luci-static/argon/css/dark.css
-                        scp $SCP_CTL htdocs/luci-static/argon/css/dark.css root@"$ROUTER":/www/luci-static/argon/css/dark.css
+                        put htdocs/luci-static/argon/css/dark.css /www/luci-static/argon/css/dark.css
                         ;;
                     *)
                         lessc less/cascade.less htdocs/luci-static/argon/css/cascade.css
-                        scp $SCP_CTL htdocs/luci-static/argon/css/cascade.css root@"$ROUTER":/www/luci-static/argon/css/cascade.css
+                        put htdocs/luci-static/argon/css/cascade.css /www/luci-static/argon/css/cascade.css
                         ;;
                 esac
             else
-                scp $SCP_CTL htdocs/luci-static/argon/css/cascade.css root@"$ROUTER":/www/luci-static/argon/css/cascade.css 2>/dev/null
-                scp $SCP_CTL htdocs/luci-static/argon/css/dark.css root@"$ROUTER":/www/luci-static/argon/css/dark.css 2>/dev/null
+                put htdocs/luci-static/argon/css/cascade.css /www/luci-static/argon/css/cascade.css 2>/dev/null
+                put htdocs/luci-static/argon/css/dark.css /www/luci-static/argon/css/dark.css 2>/dev/null
             fi
             echo "  ◌ CSS updated — just refresh browser"
             ;;
@@ -101,11 +108,12 @@ deploy_incremental() {
             local rel="${file#htdocs/luci-static/}"
             local dest="/www/luci-static/$rel"
             echo "  ◌ Copying $rel ..."
-            scp $SCP_CTL "$file" root@"$ROUTER":"$dest"
+            ssh $SSH_CTL root@"$ROUTER" "mkdir -p $(dirname $dest)" 2>/dev/null
+            put "$file" "$dest"
             ;;
 
         htdocs/luci-static/resources/*)
-            scp $SCP_CTL "$file" root@"$ROUTER":"/www/luci-static/resources/menu-argon.js"
+            put "$file" "/www/luci-static/resources/menu-argon.js"
             echo "  ◌ JS updated — just refresh browser"
             ;;
 
@@ -113,7 +121,7 @@ deploy_incremental() {
             local rel="${file#ucode/}"
             echo "  ◌ Copying $rel ..."
             ssh $SSH_CTL root@"$ROUTER" "mkdir -p /usr/share/ucode/luci/template/themes/argon" 2>/dev/null
-            scp $SCP_CTL "$file" root@"$ROUTER":"/usr/share/ucode/luci/$rel"
+            put "$file" "/usr/share/ucode/luci/$rel"
             echo "  ◌ Restarting uhttpd..."
             ssh $SSH_CTL root@"$ROUTER" "/etc/init.d/uhttpd restart" 2>/dev/null
             ;;
@@ -122,7 +130,7 @@ deploy_incremental() {
             local rel="${file#root/}"
             echo "  ◌ Copying $rel ..."
             ssh $SSH_CTL root@"$ROUTER" "mkdir -p /$(dirname $rel)" 2>/dev/null
-            scp $SCP_CTL "$file" root@"$ROUTER":"/$rel"
+            put "$file" "/$rel"
             if echo "$rel" | grep -q "rpcd"; then
                 ssh $SSH_CTL root@"$ROUTER" "chmod +x /$rel; /etc/init.d/rpcd restart" 2>/dev/null
             fi
