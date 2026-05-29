@@ -1,6 +1,6 @@
 {#
-	Argon login page — Tailwind CSS + shadcn-inspired dark aesthetic
-
+	Argon login page — shadcn-inspired dark aesthetic via Tailwind CSS
+	
 	luci-theme-argon
 	Copyright 2020 Jerryk <jerrykuku@gmail.com>
 	Licensed to the public under the Apache License 2.0
@@ -70,7 +70,6 @@
 <div class="login-page fixed inset-0 flex items-center justify-center overflow-hidden">
 
 	{% if ( bgArry.backgroundType == "Video" ): %}
-	<!-- Video background -->
 	<div class="absolute inset-0 flex items-center justify-center bg-black overflow-hidden">
 		<video autoplay loop muted id="video" class="w-full h-full object-cover">
 			<source src="{{ bgArry.bgUrl }}" type="{{ bgArry.mimeType }}">
@@ -84,37 +83,33 @@
 		});
 	</script>
 	{% else %}
-	<!-- Image background -->
 	<div class="absolute inset-0 bg-no-repeat bg-center bg-cover" style="background-image:url({{ bgArry.bgUrl }})"></div>
 	{% endif %}
 
-	<!-- Dark scrim -->
-	<div class="absolute inset-0 z-[1]" style="background:linear-gradient(135deg,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0.35) 50%,rgba(0,0,0,0.6) 100%)"></div>
+	<!-- Scrim -->
+	<div class="absolute inset-0 z-[1]" style="background:linear-gradient(135deg,rgba(0,0,0,0.8) 0%,rgba(0,0,0,0.3) 50%,rgba(0,0,0,0.5) 100%)"></div>
 
-	<!-- ── Login Card ── -->
-	<div class="relative z-10 w-full max-w-sm mx-4 bg-surface border border-border rounded-2xl shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_25px_80px_rgba(0,0,0,0.6),0_8px_20px_rgba(0,0,0,0.3)] backdrop-blur-2xl animate-fade-in">
+	<!-- Card -->
+	<div class="relative z-10 w-full max-w-sm mx-4 bg-surface border border-border/50 rounded-xl shadow-[0_0_0_1px_rgba(255,255,255,0.02),0_25px_80px_rgba(0,0,0,0.5)] backdrop-blur-2xl animate-fade-in">
+		<div class="px-7 pt-9 pb-6">
 
-		<div class="px-8 pt-10 pb-7">
 			<!-- Brand -->
-			<a href="/" class="flex flex-col items-center gap-2 mb-9 no-underline group">
-				<div class="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center transition-all duration-300 group-hover:bg-primary/15 group-hover:scale-105">
-					<img src="{{ media }}/img/argon.svg" alt="" class="w-7 h-auto">
-				</div>
-				<span class="text-lg font-logo tracking-wide text-[var(--foreground,#fafafa)]">{{ hostname }}</span>
+			<a href="/" class="flex flex-col items-center gap-3 mb-8 no-underline group">
+				<img src="{{ media }}/img/argon.svg" alt="" class="w-8 h-auto opacity-80 group-hover:opacity-100 transition-opacity duration-300">
+				<span class="text-base font-logo tracking-wide text-[var(--foreground,#fafafa)]">{{ hostname }}</span>
 			</a>
 
 			<!-- Error -->
 			{%- if (fuser): %}
-			<div class="px-4 py-3 mb-6 text-sm text-red-400 bg-red-500/10 border border-red-500/15 rounded-xl text-center">{{ _('Invalid username and/or password! Please try again.') }}</div>
+			<div class="px-4 py-2.5 mb-5 text-xs text-red-400 bg-red-500/8 border border-red-500/10 rounded-lg text-center">{{ _('Invalid username and/or password! Please try again.') }}</div>
 			{% endif -%}
 
 			<!-- Form -->
-			<form class="flex flex-col gap-6" method="post" action="{{ http.getenv("REQUEST_URI") }}">
-				<!-- Username field -->
-				<div class="relative">
-					<label for="cbi-input-user" class="block mb-2 text-xs font-medium tracking-wider text-muted-fg uppercase peer-focus:text-primary transition-colors duration-200">{{ _('Username') }}</label>
+			<form class="flex flex-col gap-5" method="post" action="{{ http.getenv("REQUEST_URI") }}">
+				<div class="space-y-1.5">
+					<label for="cbi-input-user" class="block text-xs font-medium text-muted-fg peer-focus:text-primary transition-colors duration-200">{{ _('Username') }}</label>
 					<input
-						class="peer w-full px-3.5 py-3 text-sm font-sans text-[var(--foreground,#fafafa)] bg-white/5 border border-border-strong rounded-xl outline-none transition-all duration-200 placeholder:text-white/15 focus:bg-white/[0.07] focus:border-primary focus:shadow-[inset_0_0_0_1px_var(--primary,#5e72e4)]"
+						class="peer w-full px-3 py-2.5 text-sm font-sans text-[var(--foreground,#fafafa)] bg-white/[0.04] border border-border-strong/80 rounded-lg outline-none transition-all duration-200 placeholder:text-white/[0.12] focus:bg-white/[0.06] focus:border-primary focus:ring-1 focus:ring-primary/30"
 						id="cbi-input-user"
 						type="text"
 						name="luci_username"
@@ -123,35 +118,49 @@
 						autocomplete="username"
 					>
 				</div>
-				<!-- Password field -->
-				<div class="relative">
-					<label for="cbi-input-password" class="block mb-2 text-xs font-medium tracking-wider text-muted-fg uppercase peer-focus:text-primary transition-colors duration-200">{{ _('Password') }}</label>
-					<input
-						class="peer w-full px-3.5 py-3 text-sm font-sans text-[var(--foreground,#fafafa)] bg-white/5 border border-border-strong rounded-xl outline-none transition-all duration-200 placeholder:text-white/15 focus:bg-white/[0.07] focus:border-primary focus:shadow-[inset_0_0_0_1px_var(--primary,#5e72e4)]"
-						id="cbi-input-password"
-						type="password"
-						name="luci_password"
-						placeholder="{{ _('Enter password') }}"
-						autocomplete="current-password"
-					>
+				<div class="space-y-1.5">
+					<label for="cbi-input-password" class="block text-xs font-medium text-muted-fg peer-focus:text-primary transition-colors duration-200">{{ _('Password') }}</label>
+					<div class="relative">
+						<input
+							class="peer w-full px-3 py-2.5 pr-10 text-sm font-sans text-[var(--foreground,#fafafa)] bg-white/[0.04] border border-border-strong/80 rounded-lg outline-none transition-all duration-200 placeholder:text-white/[0.12] focus:bg-white/[0.06] focus:border-primary focus:ring-1 focus:ring-primary/30"
+							id="cbi-input-password"
+							type="password"
+							name="luci_password"
+							placeholder="{{ _('Enter password') }}"
+							autocomplete="current-password"
+						>
+						<button type="button" id="password-toggle" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-muted-fg/40 hover:text-muted-fg/80 transition-colors duration-200 border-none bg-transparent cursor-pointer focus:outline-none" aria-label="{{ _('Show password') }}">
+							<!-- Eye (visible) -->
+							<svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+								<circle cx="12" cy="12" r="3"/>
+							</svg>
+							<!-- Eye-off (hidden) -->
+							<svg id="eye-off-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden">
+								<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+								<path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+								<path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+								<line x1="2" x2="22" y1="2" y2="22"/>
+							</svg>
+						</button>
+					</div>
 				</div>
-				<!-- Submit -->
 				<button type="submit"
-					class="w-full mt-1 py-3.5 px-4 text-sm font-semibold font-sans text-white bg-primary rounded-xl cursor-pointer tracking-wider transition-all duration-200
-					hover:bg-primary/90 hover:shadow-[0_8px_25px_rgba(94,114,228,0.35)] hover:-translate-y-0.5
-					active:scale-[0.97] active:translate-y-0
-					focus-visible:outline-2 focus-visible:outline-white/30 focus-visible:outline-offset-2"
+					class="w-full mt-1 py-2.5 text-sm font-medium font-sans text-white bg-primary rounded-lg cursor-pointer transition-all duration-150
+					hover:bg-primary/90
+					active:scale-[0.98]
+					focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
 				>{{ _('Log in') }}</button>
 			</form>
 		</div>
 
 		<!-- Footer -->
-		<div class="flex items-center justify-center flex-wrap gap-x-2 gap-y-1 px-8 py-4 border-t border-border/60 text-[0.7rem] text-muted-fg/70">
-			<a href="https://github.com/openwrt/luci" target="_blank" rel="noopener" class="text-muted-fg/70 no-underline transition-colors duration-200 hover:text-muted-fg hover:no-underline">Powered by {{ version.luciname }}</a>
+		<div class="flex items-center justify-center flex-wrap gap-x-2 px-7 py-3.5 border-t border-border/40 text-[0.65rem] text-muted-fg/60">
+			<a href="https://github.com/openwrt/luci" target="_blank" rel="noopener" class="text-muted-fg/60 no-underline transition-colors duration-200 hover:text-muted-fg/90 hover:no-underline">Powered by {{ version.luciname }}</a>
 			<span class="text-muted-fg/20">·</span>
-			<a href="https://github.com/jerrykuku/luci-theme-argon" target="_blank" rel="noopener" class="text-muted-fg/70 no-underline transition-colors duration-200 hover:text-muted-fg hover:no-underline">Argon</a>
+			<a href="https://github.com/jerrykuku/luci-theme-argon" target="_blank" rel="noopener" class="text-muted-fg/60 no-underline transition-colors duration-200 hover:text-muted-fg/90 hover:no-underline">Argon</a>
 			<span class="text-muted-fg/20">·</span>
-			<a href="{{ version.disturl }}" target="_blank" rel="noopener" class="text-muted-fg/70 no-underline transition-colors duration-200 hover:text-muted-fg hover:no-underline">{{ version.distname }} {{ version.distversion }}</a>
+			<a href="{{ version.disturl }}" target="_blank" rel="noopener" class="text-muted-fg/60 no-underline transition-colors duration-200 hover:text-muted-fg/90 hover:no-underline">{{ version.distname }} {{ version.distversion }}</a>
 		</div>
 	</div>
 </div>
@@ -159,6 +168,18 @@
 <script type="text/javascript">//<![CDATA[
 	var input = document.getElementsByName('luci_password')[0];
 	if (input) input.focus();
+
+	// Password visibility toggle
+	var toggle = document.getElementById('password-toggle');
+	var pwdInput = document.getElementById('cbi-input-password');
+	if (toggle && pwdInput) {
+		toggle.addEventListener('click', function() {
+			var isPassword = pwdInput.type === 'password';
+			pwdInput.type = isPassword ? 'text' : 'password';
+			document.getElementById('eye-icon').classList.toggle('hidden');
+			document.getElementById('eye-off-icon').classList.toggle('hidden');
+		});
+	}
 //]]></script>
 
 {% include("themes/" + theme + "/footer_login") %}
