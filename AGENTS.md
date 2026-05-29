@@ -9,7 +9,12 @@ An OpenWrt LuCI theme (v2.4.3). Provides a clean, customizable web interface for
 ```bash
 # One-time setup: SSH key so you're never asked for a password again
 ssh-copy-id root@192.168.1.1
-# (Or set an alias in ~/.ssh/config for even shorter commands)
+
+# First time: install Tailwind
+npm install
+
+# Build Tailwind CSS (re-run after adding new classes)
+npm run build
 
 # Then:
 ./deploy.sh 192.168.1.1     # one-time deploy
@@ -167,6 +172,30 @@ config global
   2. If new version: builds with OpenWrt SDK (24.10.0, x86/64)
   3. Creates GitHub release with `.ipk` artifacts
 - **Release prerequisites**: Enable Actions → Settings → Actions → General → Read and write permissions
+
+## Tailwind CSS
+
+**Setup** (one-time):
+```bash
+npm install
+```
+
+**Build** (re-run when you add new Tailwind classes):
+```bash
+npm run build
+```
+
+Generated to `htdocs/luci-static/argon/css/tailwind.css` (~6KB minified). Linked in both `header.ut` and `header_login.ut`.
+
+**Config**: `tailwind.config.js` scans `.ut`, `.js`, and `.html` files. Dark mode via `class` strategy. Extended theme includes custom colors (`surface`, `muted`, `muted-fg`, `border`, `border-strong`) and font families (`sans`, `logo`).
+
+**Usage example** in templates:
+```html
+<div class="flex items-center justify-center min-h-screen bg-[#09090b]">
+  <div class="w-full max-w-sm bg-surface border border-border rounded-xl shadow-2xl p-6">
+```
+
+**Important**: Run `npm run build && ./deploy.sh <ip>` after any change to `.ut` files that uses new Tailwind classes. The generated CSS is purged — only includes classes found in your templates.
 
 ## Updating CSS
 

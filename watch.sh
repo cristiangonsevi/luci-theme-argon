@@ -7,6 +7,12 @@
 # Example:
 #   ./watch.sh 192.168.1.1
 #
+# Does everything automatically:
+#   - Rebuilds LESS → CSS (if lessc available)
+#   - Rebuilds Tailwind CSS (if node_modules exists)
+#   - Deploys changed files to router via SSH
+#   - Restarts services when needed
+#
 # First time? Set up SSH keys so it doesn't ask for password every time:
 #   ssh-copy-id root@192.168.1.1
 #
@@ -45,26 +51,38 @@ put_recursive() {
     ssh $SSH_CTL root@"$ROUTER" "mkdir -p '$dst_dir' && tar xf - -C '$dst_dir'"
 }
 
-# ── helpers ─────────────────────────────────────────────────────────
+# ── Build CSS (LESS + Tailwind) ─────────────────────────────────────
+
+build_css() {
+    # Recompile LESS if the compiler is available
+    if command -v lessc >/dev/null 2>&1; then
+        echo "  ◌ Compiling LESS → CSS..."
+        lessc less/cascade.less htdocs/luci-static/argon/css/cascade.css 2>/dev/null
+        lessc --clean-css less/dark.less htdocs/luci-static/argon/css/dark.css 2>/dev/null
+    fi
+
+    # Rebuild Tailwind if node_modules exists
+    if [ -f package.json ] && [ -d node_modules ]; then
+        echo "  ◌ Building Tailwind CSS..."
+        npm run build 2>/dev/null
+    fi
+}
+
+# ── Deploy helpers ──────────────────────────────────────────────────
 
 deploy_all() {
     echo "── Deploying all files to $ROUTER ──"
     echo "   (first connection may ask for password, then it's seamless)"
 
-    # Recompile LESS if the compiler is available
-    if command -v lessc >/dev/null 2>&1; then
-        echo "  ◌ Compiling CSS..."
-        lessc less/cascade.less htdocs/luci-static/argon/css/cascade.css 2>/dev/null
-        lessc --clean-css less/dark.less htdocs/luci-static/argon/css/dark.css 2>/dev/null
-    fi
+    build_css
 
     echo "  ◌ Copying static assets..."
-    put_recursive htdocs/luci-static/argon /www/luci-static/argon
+    put_recursive htdocs/luci-static/argon /www/luci-static
     put htdocs/luci-static/resources/menu-argon.js /www/luci-static/resources/menu-argon.js
 
     echo "  ◌ Copying ucode templates..."
-    ssh $SSH_CTL root@"$ROUTER" "mkdir -p /usr/share/ucode/luci/template/themes/argon" 2>/dev/null
-    put_recursive ucode/template/themes/argon /usr/share/ucode/luci/template/themes/argon
+    ssh $SSH_CTL root@"$ROUTER" "mkdir -p /usr/share/ucode/luci/template/themes" 2>/dev/null
+    put_recursive ucode/template/themes/argon /usr/share/ucode/luci/template/themes
 
     echo "  ◌ Copying RPCD plugin..."
     put root/usr/libexec/rpcd/luci.argon_wallpaper /usr/libexec/rpcd/luci.argon_wallpaper
@@ -84,26 +102,19 @@ deploy_all() {
 
 deploy_incremental() {
     local file="$1"
+
+    # Always rebuild CSS first (fast: ~250ms tailwind, ~1s lessc)
+    build_css
+
     echo "── Change detected: $file ──"
 
     case "$file" in
         less/*)
-            if command -v lessc >/dev/null 2>&1; then
-                echo "  ◌ Recompiling CSS..."
-                case "$file" in
-                    less/dark.less)
-                        lessc --clean-css less/dark.less htdocs/luci-static/argon/css/dark.css
-                        put htdocs/luci-static/argon/css/dark.css /www/luci-static/argon/css/dark.css
-                        ;;
-                    *)
-                        lessc less/cascade.less htdocs/luci-static/argon/css/cascade.css
-                        put htdocs/luci-static/argon/css/cascade.css /www/luci-static/argon/css/cascade.css
-                        ;;
-                esac
-            else
-                put htdocs/luci-static/argon/css/cascade.css /www/luci-static/argon/css/cascade.css 2>/dev/null
-                put htdocs/luci-static/argon/css/dark.css /www/luci-static/argon/css/dark.css 2>/dev/null
-            fi
+            # CSS was already rebuilt and compiled by build_css above.
+            # Deploy the compiled files.
+            put htdocs/luci-static/argon/css/cascade.css /www/luci-static/argon/css/cascade.css
+            put htdocs/luci-static/argon/css/dark.css /www/luci-static/argon/css/dark.css 2>/dev/null
+            put htdocs/luci-static/argon/css/tailwind.css /www/luci-static/argon/css/tailwind.css 2>/dev/null
             echo "  ◌ CSS updated — just refresh browser"
             ;;
 
@@ -113,6 +124,7 @@ deploy_incremental() {
             echo "  ◌ Copying $rel ..."
             ssh $SSH_CTL root@"$ROUTER" "mkdir -p $(dirname $dest)" 2>/dev/null
             put "$file" "$dest"
+            # If it's a LESS change, the compiled CSS was already deployed by build_css
             ;;
 
         htdocs/luci-static/resources/*)
@@ -125,6 +137,8 @@ deploy_incremental() {
             echo "  ◌ Copying $rel ..."
             ssh $SSH_CTL root@"$ROUTER" "mkdir -p /usr/share/ucode/luci/template/themes/argon" 2>/dev/null
             put "$file" "/usr/share/ucode/luci/$rel"
+            # Tailwind was rebuilt by build_css, deploy it too
+            put htdocs/luci-static/argon/css/tailwind.css /www/luci-static/argon/css/tailwind.css 2>/dev/null
             echo "  ◌ Restarting uhttpd..."
             ssh $SSH_CTL root@"$ROUTER" "/etc/init.d/uhttpd restart" 2>/dev/null
             ;;

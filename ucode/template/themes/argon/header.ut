@@ -91,6 +91,7 @@
 	<link rel="manifest" href="{{ media }}/icon/manifest.json" crossorigin="use-credentials">
 
 	<link rel="stylesheet" href="{{ media }}/css/cascade.css{# ?v=PKG_VERSION #}">
+	<link rel="stylesheet" href="{{ media }}/css/tailwind.css{# ?v=PKG_VERSION #}">
 	<style title="text/css">
 		{% if (mode == 'normal'): %}
 			@media (prefers-color-scheme: dark) {

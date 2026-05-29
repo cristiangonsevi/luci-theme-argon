@@ -1,0 +1,13 @@
+{
+  "name": "luci-theme-argon",
+  "version": "2.4.3",
+  "private": true,
+  "description": "A clean and tidy OpenWrt LuCI theme",
+  "scripts": {
+    "css:tailwind": "tailwindcss -i ./src/tailwind-input.css -o ./htdocs/luci-static/argon/css/tailwind.css --minify",
+    "build": "npm run css:tailwind"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  }
+}

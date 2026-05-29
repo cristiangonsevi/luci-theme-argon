@@ -1,11 +1,5 @@
 {#
-	Argon is a clean HTML5 theme for LuCI. Based on luci-theme-bootstrap, MUI and Argon Template.
-	
-	Redesigned with shadcn-inspired dark aesthetic:
-	- Centered card on full-screen background
-	- Subtle glass effect with dark overlay
-	- Clean input focus states with animated underline
-	- Muted secondary text, primary accent CTAs
+	Argon login page — Tailwind CSS + shadcn-inspired dark aesthetic
 
 	luci-theme-argon
 	Copyright 2020 Jerryk <jerrykuku@gmail.com>
@@ -73,10 +67,12 @@
 	const bgArry = selectBackground(themeDir);
 
 %}
-<div class="login-page">
+<div class="login-page fixed inset-0 flex items-center justify-center overflow-hidden">
+
 	{% if ( bgArry.backgroundType == "Video" ): %}
-	<div class="login-bg-video">
-		<video autoplay loop muted id="video">
+	<!-- Video background -->
+	<div class="absolute inset-0 flex items-center justify-center bg-black overflow-hidden">
+		<video autoplay loop muted id="video" class="w-full h-full object-cover">
 			<source src="{{ bgArry.bgUrl }}" type="{{ bgArry.mimeType }}">
 		</video>
 	</div>
@@ -88,48 +84,74 @@
 		});
 	</script>
 	{% else %}
-	<div class="login-bg-image" style="background-image:url({{ bgArry.bgUrl }})"></div>
+	<!-- Image background -->
+	<div class="absolute inset-0 bg-no-repeat bg-center bg-cover" style="background-image:url({{ bgArry.bgUrl }})"></div>
 	{% endif %}
 
-	<!-- Scrim overlay for readability -->
-	<div class="login-overlay"></div>
+	<!-- Dark scrim -->
+	<div class="absolute inset-0 z-[1]" style="background:linear-gradient(135deg,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0.35) 50%,rgba(0,0,0,0.6) 100%)"></div>
 
-	<!-- Login card (shadcn-inspired) -->
-	<div class="login-card">
-		<div class="login-card-body">
+	<!-- ── Login Card ── -->
+	<div class="relative z-10 w-full max-w-sm mx-4 bg-surface border border-border rounded-2xl shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_25px_80px_rgba(0,0,0,0.6),0_8px_20px_rgba(0,0,0,0.3)] backdrop-blur-2xl animate-fade-in">
+
+		<div class="px-8 pt-10 pb-7">
 			<!-- Brand -->
-			<a class="login-brand" href="/">
-				<img src="{{ media }}/img/argon.svg" alt="" class="login-brand-icon">
-				<span class="login-brand-text">{{ hostname }}</span>
+			<a href="/" class="flex flex-col items-center gap-2 mb-9 no-underline group">
+				<div class="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center transition-all duration-300 group-hover:bg-primary/15 group-hover:scale-105">
+					<img src="{{ media }}/img/argon.svg" alt="" class="w-7 h-auto">
+				</div>
+				<span class="text-lg font-logo tracking-wide text-[var(--foreground,#fafafa)]">{{ hostname }}</span>
 			</a>
 
 			<!-- Error -->
 			{%- if (fuser): %}
-			<div class="login-error">{{ _('Invalid username and/or password! Please try again.') }}</div>
+			<div class="px-4 py-3 mb-6 text-sm text-red-400 bg-red-500/10 border border-red-500/15 rounded-xl text-center">{{ _('Invalid username and/or password! Please try again.') }}</div>
 			{% endif -%}
 
 			<!-- Form -->
-			<form class="login-form" method="post" action="{{ http.getenv("REQUEST_URI") }}">
-				<div class="login-field">
-					<label class="login-label" for="cbi-input-user">{{ _('Username') }}</label>
-					<input class="login-input" id="cbi-input-user" type="text" name="luci_username" value="{{ entityencode(duser, true) }}" placeholder="{{ _('Enter username') }}" autocomplete="username">
-					<div class="login-input-bar"></div>
+			<form class="flex flex-col gap-6" method="post" action="{{ http.getenv("REQUEST_URI") }}">
+				<!-- Username field -->
+				<div class="relative">
+					<label for="cbi-input-user" class="block mb-2 text-xs font-medium tracking-wider text-muted-fg uppercase peer-focus:text-primary transition-colors duration-200">{{ _('Username') }}</label>
+					<input
+						class="peer w-full px-3.5 py-3 text-sm font-sans text-[var(--foreground,#fafafa)] bg-white/5 border border-border-strong rounded-xl outline-none transition-all duration-200 placeholder:text-white/15 focus:bg-white/[0.07] focus:border-primary focus:shadow-[inset_0_0_0_1px_var(--primary,#5e72e4)]"
+						id="cbi-input-user"
+						type="text"
+						name="luci_username"
+						value="{{ entityencode(duser, true) }}"
+						placeholder="{{ _('Enter username') }}"
+						autocomplete="username"
+					>
 				</div>
-				<div class="login-field">
-					<label class="login-label" for="cbi-input-password">{{ _('Password') }}</label>
-					<input class="login-input" id="cbi-input-password" type="password" name="luci_password" placeholder="{{ _('Enter password') }}" autocomplete="current-password">
-					<div class="login-input-bar"></div>
+				<!-- Password field -->
+				<div class="relative">
+					<label for="cbi-input-password" class="block mb-2 text-xs font-medium tracking-wider text-muted-fg uppercase peer-focus:text-primary transition-colors duration-200">{{ _('Password') }}</label>
+					<input
+						class="peer w-full px-3.5 py-3 text-sm font-sans text-[var(--foreground,#fafafa)] bg-white/5 border border-border-strong rounded-xl outline-none transition-all duration-200 placeholder:text-white/15 focus:bg-white/[0.07] focus:border-primary focus:shadow-[inset_0_0_0_1px_var(--primary,#5e72e4)]"
+						id="cbi-input-password"
+						type="password"
+						name="luci_password"
+						placeholder="{{ _('Enter password') }}"
+						autocomplete="current-password"
+					>
 				</div>
-				<button type="submit" class="login-button">{{ _('Log in') }}</button>
+				<!-- Submit -->
+				<button type="submit"
+					class="w-full mt-1 py-3.5 px-4 text-sm font-semibold font-sans text-white bg-primary rounded-xl cursor-pointer tracking-wider transition-all duration-200
+					hover:bg-primary/90 hover:shadow-[0_8px_25px_rgba(94,114,228,0.35)] hover:-translate-y-0.5
+					active:scale-[0.97] active:translate-y-0
+					focus-visible:outline-2 focus-visible:outline-white/30 focus-visible:outline-offset-2"
+				>{{ _('Log in') }}</button>
 			</form>
 		</div>
 
-		<div class="login-card-footer">
-			<a href="https://github.com/openwrt/luci" target="_blank" rel="noopener">Powered by {{ version.luciname }}</a>
-			<span class="login-footer-dot">·</span>
-			<a href="https://github.com/jerrykuku/luci-theme-argon" target="_blank" rel="noopener">Argon</a>
-			<span class="login-footer-dot">·</span>
-			<a href="{{ version.disturl }}" target="_blank" rel="noopener">{{ version.distname }} {{ version.distversion }}</a>
+		<!-- Footer -->
+		<div class="flex items-center justify-center flex-wrap gap-x-2 gap-y-1 px-8 py-4 border-t border-border/60 text-[0.7rem] text-muted-fg/70">
+			<a href="https://github.com/openwrt/luci" target="_blank" rel="noopener" class="text-muted-fg/70 no-underline transition-colors duration-200 hover:text-muted-fg hover:no-underline">Powered by {{ version.luciname }}</a>
+			<span class="text-muted-fg/20">·</span>
+			<a href="https://github.com/jerrykuku/luci-theme-argon" target="_blank" rel="noopener" class="text-muted-fg/70 no-underline transition-colors duration-200 hover:text-muted-fg hover:no-underline">Argon</a>
+			<span class="text-muted-fg/20">·</span>
+			<a href="{{ version.disturl }}" target="_blank" rel="noopener" class="text-muted-fg/70 no-underline transition-colors duration-200 hover:text-muted-fg hover:no-underline">{{ version.distname }} {{ version.distversion }}</a>
 		</div>
 	</div>
 </div>

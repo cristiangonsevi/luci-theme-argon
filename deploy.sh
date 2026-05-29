@@ -41,18 +41,34 @@ put_recursive() {
     ssh $SSH_CTL root@"$ROUTER" "mkdir -p '$dst_dir' && tar xf - -C '$dst_dir'"
 }
 
+# ── Build CSS (LESS + Tailwind) ─────────────────────────────────────
+
+build_css() {
+    if command -v lessc >/dev/null 2>&1; then
+        echo "  → Compiling LESS..."
+        lessc less/cascade.less htdocs/luci-static/argon/css/cascade.css 2>/dev/null
+        lessc --clean-css less/dark.less htdocs/luci-static/argon/css/dark.css 2>/dev/null
+    fi
+    if [ -f package.json ] && [ -d node_modules ]; then
+        echo "  → Building Tailwind..."
+        npm run build 2>/dev/null
+    fi
+}
+
 echo "🚀 Deploying luci-theme-argon to root@$ROUTER ..."
 echo "   (first connection may ask for password — subsequent ones won't)"
 
+build_css
+
 # ── Static assets (CSS, fonts, images, JS) ──────────────────────────
 echo "  → Copying static assets..."
-put_recursive htdocs/luci-static/argon /www/luci-static/argon
+put_recursive htdocs/luci-static/argon /www/luci-static
 put htdocs/luci-static/resources/menu-argon.js /www/luci-static/resources/menu-argon.js
 
 # ── ucode templates ─────────────────────────────────────────────────
 echo "  → Copying ucode templates..."
-ssh $SSH_CTL root@"$ROUTER" "mkdir -p /usr/share/ucode/luci/template/themes/argon"
-put_recursive ucode/template/themes/argon /usr/share/ucode/luci/template/themes/argon
+ssh $SSH_CTL root@"$ROUTER" "mkdir -p /usr/share/ucode/luci/template/themes"
+put_recursive ucode/template/themes/argon /usr/share/ucode/luci/template/themes
 
 # ── RPCD wallpaper plugin ───────────────────────────────────────────
 echo "  → Copying RPCD wallpaper plugin..."
