@@ -4,16 +4,39 @@ An OpenWrt LuCI theme (v2.4.3). Provides a clean, customizable web interface for
 
 ## Quick Start
 
-```bash
-# No local build possible — this is an OpenWrt SDK package.
-# To build:
-#   1. Clone into openwrt/package/luci-theme-argon
-#   2. make menuconfig (choose LUCI → Themes → luci-theme-argon)
-#   3. make package/luci-theme-argon/{clean,compile} V=s
+### Quick deploy + live reload
 
-# Build the CSS (from within the repo, if you have the lessc compiler):
+```bash
+# One-time setup: SSH key so you're never asked for a password again
+ssh-copy-id root@192.168.1.1
+# (Or set an alias in ~/.ssh/config for even shorter commands)
+
+# Then:
+./deploy.sh 192.168.1.1     # one-time deploy
+./watch.sh 192.168.1.1      # watch mode — auto-deploys on every file change
+```
+
+`deploy.sh` SCPs all files and restarts `rpcd` + `uhttpd`. Requires SSH root access.
+
+`watch.sh` does a full deploy first, then watches for changes and deploys incrementally. LESS files are auto-recompiled if `lessc` is installed.
+
+Both scripts use **SSH multiplexing** (`ControlMaster=auto`) — the first connection may ask for a password, but all subsequent ones reuse the same channel so there's zero prompting.
+
+### Build the CSS
+
+```bash
+# Only needed if you edit .less files (requires lessc compiler):
+#   npm install -g less less-plugin-clean-css
 lessc less/cascade.css htdocs/luci-static/argon/css/cascade.css
 lessc --clean-css less/dark.less htdocs/luci-static/argon/css/dark.css
+```
+
+### Build the SDK package
+
+```bash
+# 1. Clone into openwrt/package/luci-theme-argon
+# 2. make menuconfig (choose LUCI → Themes → luci-theme-argon)
+# 3. make package/luci-theme-argon/{clean,compile} V=s
 ```
 
 ## Project Structure
